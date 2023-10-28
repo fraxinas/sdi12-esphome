@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ESP32_NODEMCU")(type "KiCad")(uri "${KIPRJMOD}/lib_includes/Fraxinas-kicad/ESP32_NODEMCU.kicad_sym")(options "")(descr ""))
+)

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Fraxinas-kicad")(type "KiCad")(uri "${KIPRJMOD}/lib_includes/Fraxinas-kicad/Fraxinas-kicad.pretty")(options "")(descr ""))
+)
