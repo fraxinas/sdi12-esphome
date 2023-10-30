@@ -1,5 +1,6 @@
 *-backups/
 *-cache.lib
 \#auto_saved_files#
+_autosave-sdi12-esphome.kicad_*
 ~*.lck
 fp-info-cache
