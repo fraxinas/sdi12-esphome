@@ -32,5 +32,39 @@ class SDI12Bus : public Component {
   bool scan_{false};
 };
 
+/**
+ * The SDI12Device is what components connected to SDI-12 will create.
+ *
+ */
+class SDI12Device;
+class SDI12Register {
+ public:
+  explicit operator uint8_t() const { return get(); }
+
+  uint8_t get() const;
+
+ protected:
+  friend class SDI12Device;
+
+  SDI12Register(SDI12Device *parent, uint8_t a_register) : parent_(parent), register_(a_register) {}
+
+  SDI12Device *parent_;
+  uint8_t register_;
+};
+
+class SDI12Device {
+ public:
+  SDI12Device() = default;
+
+  void set_sdi12_address(uint8_t address) { address_ = address; }
+  void set_sdi12_bus(SDI12Bus *bus) { bus_ = bus; }
+
+  SDI12Register reg(uint8_t a_register) { return {this, a_register}; }
+
+ protected:
+  uint8_t address_{0x00};
+  SDI12Bus *bus_{nullptr};
+};
+
 }  // namespace sdi12
 }  // namespace esphome
