@@ -32,3 +32,10 @@ sdi12:
   enable_pin: 27
   scan: True
   id: bus_a
+
+sensor:
+  - platform: ds2
+    address: '5'
+    wind_speed:
+      name: "Windspeed"
+      id: ds2_windspeed
