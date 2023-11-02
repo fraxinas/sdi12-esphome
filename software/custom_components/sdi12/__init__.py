@@ -1,4 +1,3 @@
-import logging
 import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.final_validate as fv
@@ -13,8 +12,6 @@ from esphome.const import (
     CONF_ADDRESS,
 )
 from esphome.core import coroutine_with_priority, CORE
-
-_LOGGER = logging.getLogger(__name__)
 
 CONF_SDI12_ID = "sdi12_id"
 
@@ -62,7 +59,6 @@ async def to_code(config):
     cg.add(var.set_oe_pin(oe_pin))
 
     cg.add(var.set_scan(config[CONF_SCAN]))
-    _LOGGER.warning("successfully ran to_code() from sdi12/__init__.py")
 
 def sdi12_device_schema(default_address):
     """Create a schema for an SDI-12 device.
@@ -75,9 +71,9 @@ def sdi12_device_schema(default_address):
         cv.GenerateID(CONF_SDI12_ID): cv.use_id(SDI12Bus),
     }
     if default_address is None:
-        schema[cv.Required(CONF_ADDRESS)] = cv.sdi12_address
+        schema[cv.Required(CONF_ADDRESS)] = cv.uint8_t
     else:
-        schema[cv.Optional(CONF_ADDRESS, default=default_address)] = cv.sdi12_address
+        schema[cv.Optional(CONF_ADDRESS, default=default_address)] = cv.uint8_t
     return cv.Schema(schema)
 
 
