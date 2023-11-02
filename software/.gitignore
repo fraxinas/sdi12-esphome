@@ -1,0 +1,5 @@
+.esphome/
+.pio/
+.vscode/
+custom_components/*/__pycache__
+secrets.yaml
