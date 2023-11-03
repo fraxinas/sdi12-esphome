@@ -9,6 +9,10 @@ from esphome.const import (
     DEVICE_CLASS_WIND_SPEED,
     STATE_CLASS_MEASUREMENT,
     UNIT_KILOMETER_PER_HOUR,
+    CONF_WIND_DIRECTION_DEGREES,
+    UNIT_DEGREES,
+    CONF_TEMPERATURE,
+    UNIT_CELSIUS,
 )
 
 DEPENDENCIES = ["sdi12"]
@@ -27,7 +31,19 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(DS2Component),
             cv.Optional(CONF_WIND_SPEED): sensor.sensor_schema(
                 unit_of_measurement=UNIT_KILOMETER_PER_HOUR,
+                accuracy_decimals=2,
+                device_class=DEVICE_CLASS_WIND_SPEED,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+            cv.Optional(CONF_WIND_DIRECTION_DEGREES): sensor.sensor_schema(
+                unit_of_measurement=UNIT_DEGREES,
                 accuracy_decimals=0,
+                device_class=DEVICE_CLASS_WIND_SPEED,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+            cv.Optional(CONF_TEMPERATURE): sensor.sensor_schema(
+                unit_of_measurement=UNIT_CELSIUS,
+                accuracy_decimals=1,
                 device_class=DEVICE_CLASS_WIND_SPEED,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
@@ -47,4 +63,12 @@ async def to_code(config):
         sens = await sensor.new_sensor(conf)
         cg.add(var.set_windspeed_sensor(sens))
 
-_LOGGER.info('DS2 INIT')
+    if CONF_WIND_DIRECTION_DEGREES in config:
+        conf = config[CONF_WIND_DIRECTION_DEGREES]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_direction_sensor(sens))
+
+    if CONF_TEMPERATURE in config:
+        conf = config[CONF_TEMPERATURE]
+        sens = await sensor.new_sensor(conf)
+        cg.add(var.set_temperature_sensor(sens))
