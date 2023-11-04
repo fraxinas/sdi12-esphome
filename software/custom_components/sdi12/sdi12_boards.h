@@ -67,7 +67,7 @@ class SDI12Timer {
    * cycles to use the micros function and must manually configure the processor timer
    * and use the faster assembly macros to read that processor timer directly.
    */
-  void configSDI12TimerPrescale(void);
+  void configSDI12TimerPrescale(void) {};
   /**
    * @brief Reset the processor timer prescaler to whatever it was prior to being
    * adjusted for this library.
@@ -76,11 +76,13 @@ class SDI12Timer {
    * processors, generic clock generator 4 will remain configured for SDI-12 until it is
    * reset outside of this library.
    */
-  void resetSDI12TimerPrescale(void);
+  void resetSDI12TimerPrescale(void) {};
 
 // Espressif ESP32/ESP8266 boards
 //
 #if defined(USE_ESP32) || defined(USE_ESP8266)
+
+
   /**
    * @brief Read the processor micros and right shift 6 bits (ie, divide by 64) to get a
    * 64µs tick.
