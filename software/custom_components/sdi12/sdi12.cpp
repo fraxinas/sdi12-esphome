@@ -62,26 +62,25 @@ char SDI12Bus::read_char() {
   return '\0';
 }
 
-boolean SDI12Bus::checkActive_(char i)
-{
-  String myCommand = "";
-  myCommand = "";
-  myCommand += (char)i; // Sends basic 'acknowledge' command [address][!].
-  myCommand += "!";
+boolean SDI12Bus::checkActive_(char i) {
+  String myCommand = String(i) + "!";
 
-  for (int j = 0; j < 3; j++)
-  {
+  for (int j = 1; j <= 3; j++) {
+    unsigned long startTime = millis();
     this->SDI12_.sendCommand(myCommand);
     this->SDI12_.clearBuffer();
+    ESP_LOGD(TAG, "startTime=%lu millis=%lu diff=%lu ms", startTime, millis(), millis() - startTime);
+
     delay(30);
-    if (this->SDI12_.available())
-    {
+
+    if (this->SDI12_.available()) {
       return true;
     }
+    ESP_LOGD(TAG, "address %c unavailable %d", i, j);
   }
+
   this->SDI12_.clearBuffer();
   return false;
-
 }
 
 void SDI12Bus::printInfo_(char i)
@@ -129,6 +128,7 @@ void SDI12Bus::sdi12_scan() {
   // Now iterate over the addresses and perform the scan
   for (char address : addresses_to_scan) {
     ESP_LOGD(TAG, "Scan Address Space = %c", address);
+    yield();
     if (checkActive_(address)) {
       scan_results_.emplace_back(address, true);
       printInfo_(address);

@@ -13,8 +13,9 @@
 **/
 #include "RAK13010_SDI12.h" // Click to install library: // Click to install library: http://librarymanager/All#RAK13010
 
-#define TX_PIN 25 // The pin of the SDI-12 data bus.
-#define RX_PIN 26 // The pin of the SDI-12 data bus.
+#define RX_PIN 25 // The pin of the SDI-12 data bus.
+#define TX_PIN 26 // The pin of the SDI-12 data bus.
+
 #define OE 27    // Output enable pin, active low.
 
 RAK_SDI12 mySDI12(RX_PIN, TX_PIN, OE);
@@ -60,7 +61,7 @@ boolean checkActive(char i)
     //    delay(100);
     mySDI12.sendCommand(myCommand);
     mySDI12.clearBuffer();
-    delay(30);
+    delay(99);
     if (mySDI12.available())
     {
       return true;
@@ -102,6 +103,34 @@ void scanAddressSpace(void)
       }
     }
   }
+}
+
+void addressQueryFindDelay()
+{
+  String command = "?!";
+
+  Serial.print("  address query: ");
+
+  for (int d = 1; d < 150; d += 2)
+  {
+    for (int j = 0; j < 3; j++)
+    {
+      mySDI12.sendCommand(command);
+      mySDI12.clearBuffer();
+      delay(d);
+      if (mySDI12.available())
+      {
+        Serial.printf("available after %d * %dms: ", j, d);
+        {
+          Serial.write(mySDI12.read());
+          delay(10); // 1 character ~ 7.5ms.
+        }
+        Serial.printf("\r\n");
+        return;
+      }
+    }
+  }
+  Serial.write("unavailable!\r\n");
 }
 
 void addressQuery()
@@ -209,16 +238,20 @@ void setup()
   mySDI12.begin();
   delay(4000);
   addressQuery();
+  delay(4000);
+  addressQueryFindDelay();
+
+  // addressQuery();
   delay(2500);
   scanAddressSpace();
-  delay(2500);
-  printInfo('0');
-  delay(2500);
-  requestMesurement('0');
-  delay(2500);
-  sendData('0');
-  delay(2500);
-  toggleRecorder();
+  // delay(2500);
+  // printInfo('0');
+  // delay(2500);
+  // requestMesurement('0');
+  // delay(2500);
+  // sendData('0');
+  // delay(2500);
+  // toggleRecorder();
 
   mySDI12.end();
 
