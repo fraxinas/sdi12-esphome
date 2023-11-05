@@ -42,6 +42,7 @@ void printInfo(char i)
     Serial.write(mySDI12.read());
     delay(10); // 1 character ~ 7.5ms.
   }
+  Serial.print("\r\n");
 }
 
 /**
@@ -51,17 +52,14 @@ void printInfo(char i)
 boolean checkActive(char i)
 {
   String myCommand = "";
-  myCommand = "";
   myCommand += (char)i; // Sends basic 'acknowledge' command [address][!].
   myCommand += "!";
 
   for (int j = 0; j < 3; j++)
   {
-    //    Serial.printf("sdi.sendCommand(myCommand);\r\n");
-    //    delay(100);
-    mySDI12.sendCommand(myCommand);
+    mySDI12.sendCommand(myCommand, 20);
     mySDI12.clearBuffer();
-    delay(99);
+    delay(20);
     if (mySDI12.available())
     {
       return true;
@@ -69,7 +67,6 @@ boolean checkActive(char i)
   }
   mySDI12.clearBuffer();
   return false;
-
 }
 
 void scanAddressSpace(void)
@@ -109,47 +106,87 @@ void addressQueryFindDelay()
 {
   String command = "?!";
 
-  Serial.print("  address query: ");
+  Serial.print("  address query find delay: ");
 
-  for (int d = 1; d < 150; d += 2)
+  for (int d = 0; d < 150; d += 2)
   {
-    for (int j = 0; j < 3; j++)
+    mySDI12.sendCommand(command, d);
+    mySDI12.clearBuffer();
+    // delay(d);
+    mySDI12.sendCommand(command);
+    mySDI12.clearBuffer();
+    delay(d);
+    if (mySDI12.available())
     {
-      mySDI12.sendCommand(command);
-      mySDI12.clearBuffer();
-      delay(d);
-      if (mySDI12.available())
+      Serial.printf("available after %dms: ", d);
       {
-        Serial.printf("available after %d * %dms: ", j, d);
-        {
-          Serial.write(mySDI12.read());
-          delay(10); // 1 character ~ 7.5ms.
-        }
-        Serial.printf("\r\n");
-        return;
+        Serial.write(mySDI12.read());
+        delay(10); // 1 character ~ 7.5ms.
       }
+      Serial.printf("\r\n");
+      return;
+    } else {
+      Serial.printf("%d ", d);
     }
   }
   Serial.write("unavailable!\r\n");
 }
 
-void addressQuery()
+void addressQueryFindDelay2()
 {
-  String command = "";
-  command += "?";
-  command += "!";
+  String command = "?!";
+
+  for (int d = 5; d<105; d+=5)
+  {
+    Serial.printf("Address query with %d ms delay: ", d);
+
+    // for (int j = 0; j < 3; j++)
+    {
+      mySDI12.sendCommand(command, d);
+      mySDI12.clearBuffer();
+      mySDI12.sendCommand(command);
+      mySDI12.clearBuffer();
+      delay(d);
+      // Serial.printf("#%d ",j);
+      while (mySDI12.available())
+      {
+        Serial.write(mySDI12.read());
+        delay(10); // 1 character ~ 7.5ms.
+      }
+    }
+    mySDI12.clearBuffer();
+    Serial.write("\r\n");
+  }
+}
+
+void addressQuery(int d)
+{
+  String command = "?!";
+
+  mySDI12.sendCommand(command, d);
+  mySDI12.clearBuffer();
+
   mySDI12.sendCommand(command);
   mySDI12.clearBuffer();
-  delay(30);
+
+  mySDI12.sendCommand(command);
+  mySDI12.clearBuffer();
+
+  delay(d);
 
   Serial.print("  address query: ");
 
-  while (mySDI12.available())
+  if (mySDI12.available())
   {
-    Serial.write(mySDI12.read());
-    delay(10); // 1 character ~ 7.5ms.
+    Serial.printf("available after %dms: ", d);
+    {
+      Serial.write(mySDI12.read());
+      delay(10); // 1 character ~ 7.5ms.
+    }
+    Serial.printf("\r\n");
+    return;
   }
-  Serial.print("\n");
+  Serial.printf("No reply to address query with delay=%dms\r\n", d);
 }
 
 void requestMesurement(char i)
@@ -237,9 +274,11 @@ void setup()
 
   mySDI12.begin();
   delay(4000);
-  addressQuery();
+  addressQuery(20);
   delay(4000);
   addressQueryFindDelay();
+  delay(2500);
+  addressQueryFindDelay2();
 
   // addressQuery();
   delay(2500);
