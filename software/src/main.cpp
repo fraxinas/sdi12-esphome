@@ -189,18 +189,17 @@ void addressQuery(int d)
   Serial.printf("No reply to address query with delay=%dms\r\n", d);
 }
 
-void requestMesurement(char i)
+void requestMeasurement(char i)
 {
   String command = "";
   command += (char)i;
   command += "M!";
-  mySDI12.sendCommand(command);
+  mySDI12.sendCommand(command,100);
   mySDI12.clearBuffer();
+
   delay(30);
 
-  Serial.print("  requestMesurement --");
-  Serial.print(i);
-  Serial.print("--  ");
+  Serial.printf("  requestMeasurement with command '%s': ", command.c_str());
 
   while (mySDI12.available())
   {
@@ -214,7 +213,7 @@ void sendData(char i)
   String command = "";
   command += (char)i;
   command += "D0!";
-  mySDI12.sendCommand(command);
+  mySDI12.sendCommand(command,100);
   mySDI12.clearBuffer();
   delay(30);
 
@@ -274,8 +273,12 @@ void setup()
 
   mySDI12.begin();
   delay(4000);
-  addressQuery(20);
-  delay(4000);
+  // addressQuery(20);
+  // delay(4000);
+  requestMeasurement('0');
+  delay(2000);
+  sendData('0');
+  delay(2000);
   addressQueryFindDelay();
   delay(2500);
   addressQueryFindDelay2();
@@ -286,7 +289,7 @@ void setup()
   // delay(2500);
   // printInfo('0');
   // delay(2500);
-  // requestMesurement('0');
+  // requestMeasurement('0');
   // delay(2500);
   // sendData('0');
   // delay(2500);
