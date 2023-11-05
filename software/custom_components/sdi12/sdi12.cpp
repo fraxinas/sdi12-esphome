@@ -51,9 +51,21 @@ std::string SDI12Bus::send_command(const std::string &command) {
     return "";
   }
 
-  ESP_LOGD(TAG, "Sending command on SDI-12 bus...");
+  ESP_LOGD(TAG, "Sending command '%s' on SDI-12 bus...", command.c_str());
 
-  return "dummy response";
+  this->SDI12_.sendCommand(command.c_str());
+  this->SDI12_.clearBuffer();
+  delay(30);
+
+  std::string buffer;
+  while (this->SDI12_.available()) {
+    char c = static_cast<char>(this->SDI12_.read());
+    buffer += c;
+    delay(10);  // 1 character ~ 7.5ms.
+  }
+
+  ESP_LOGD(TAG, "SDI-12 Received Response: %s", buffer.c_str());
+  return buffer;
 }
 
 char SDI12Bus::read_char() {
