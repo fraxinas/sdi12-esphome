@@ -1,3 +1,5 @@
+import logging
+import re
 import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.final_validate as fv
@@ -12,6 +14,8 @@ from esphome.const import (
     CONF_ADDRESS,
 )
 from esphome.core import coroutine_with_priority, CORE
+
+_LOGGER = logging.getLogger(__name__)
 
 CONF_SDI12_ID = "sdi12_id"
 
@@ -38,7 +42,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_TX_PIN): pins.internal_gpio_output_pin_schema,
             cv.Optional(CONF_RX_PIN): validate_rx_pin,
             cv.Optional(CONF_ENABLE_PIN): pins.internal_gpio_output_pin_schema,
-            cv.Optional(CONF_SCAN, default=True): cv.boolean,
+            cv.Optional(CONF_SCAN, default=False): cv.boolean,
         }
     ).extend(cv.COMPONENT_SCHEMA),
 )
@@ -71,11 +75,16 @@ def sdi12_device_schema(default_address):
         cv.GenerateID(CONF_SDI12_ID): cv.use_id(SDI12Bus),
     }
     if default_address is None:
-        schema[cv.Required(CONF_ADDRESS)] = cv.uint8_t
+        schema[cv.Required(CONF_ADDRESS)] = sdi12_address_validator
     else:
-        schema[cv.Optional(CONF_ADDRESS, default=default_address)] = cv.uint8_t
+        schema[cv.Optional(CONF_ADDRESS, default=default_address)] = sdi12_address_validator
     return cv.Schema(schema)
 
+def sdi12_address_validator(value):
+    value = cv.string(value)
+    if re.match(r"^[0-9a-zA-Z]{1}$", value) is not None:
+        return value
+    raise cv.Invalid(f"Invalid SDI12 Address: {value}. Has to be a single character of [0-1] or [a-z] or [A-Z]!")
 
 async def register_sdi12_device(var, config):
     """Register an SDI-12 device with the given config.

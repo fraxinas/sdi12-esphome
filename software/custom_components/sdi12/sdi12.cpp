@@ -7,6 +7,11 @@ namespace sdi12 {
 
 static const char *const TAG = "sdi12";
 
+void SDI12Device::set_sdi12_address(std::string address) {
+    this->address_ = address.c_str()[0];
+    ESP_LOGI(TAG, "Set SDI12 Address '%c'", this->address_);
+}
+
 void SDI12Bus::setup() {
   ESP_LOGD(TAG, "Setting up SDI-12 bus...");
   this->SDI12_ = SDI12(this->rx_pin_->get_pin(), this->tx_pin_->get_pin(), this->oe_pin_->get_pin());

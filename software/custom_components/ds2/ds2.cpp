@@ -13,15 +13,15 @@ float DS2Component::get_setup_priority() const {
 }
 
 void DS2Component::setup() {
-    ESP_LOGV(TAG, "setup() DS2 Anemometer @ SDI-11 Address '%c'", this->address_);
+    ESP_LOGI(TAG, "setup() DS2 Anemometer @ SDI-12 Address '%c'", this->address_);
 }
 
 void DS2Component::update() {
-    ESP_LOGV(TAG, "DS2 update()");
+    ESP_LOGI(TAG, "DS2 update() address %c", this->address_);
     std::string request = this->address_ + "R0!";
     std::string response = this->bus_->send_command(request);
 
-    ESP_LOGV(TAG, "Received DS2 sensor response: '%s'", response.c_str());
+    ESP_LOGI(TAG, "Received DS2 sensor response: '%s'", response.c_str());
 
     // Expected fixed format at the beginning of the response
     std::string expected_prefix = "?R0!0+";
@@ -43,7 +43,7 @@ void DS2Component::update() {
             if (converter.fail() || !converter.eof()) {
                 ESP_LOGW(TAG, "Failed to parse wind speed");
             } else {
-                ESP_LOGV(TAG, "Parsed Wind Speed: %.2f km/h", wind_speed);
+                ESP_LOGI(TAG, "Parsed Wind Speed: %.2f km/h", wind_speed);
             }
         }
 
@@ -54,7 +54,7 @@ void DS2Component::update() {
             if (converter.fail() || !converter.eof()) {
                 ESP_LOGW(TAG, "Failed to parse wind direction");
             } else {
-                ESP_LOGV(TAG, "Parsed Wind Direction: %.0f degrees", wind_direction);
+                ESP_LOGI(TAG, "Parsed Wind Direction: %.0f degrees", wind_direction);
             }
         }
 
@@ -65,7 +65,7 @@ void DS2Component::update() {
             if (converter.fail() || !converter.eof()) {
                 ESP_LOGW(TAG, "Failed to parse wind temperature");
             } else {
-                ESP_LOGV(TAG, "Parsed Wind Temperature: %.1f °C", wind_temperature);
+                ESP_LOGI(TAG, "Parsed Wind Temperature: %.1f °C", wind_temperature);
             }
         }
 

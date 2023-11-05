@@ -62,7 +62,7 @@ class SDI12Device {
  public:
   SDI12Device() = default;
 
-  void set_sdi12_address(char address) { address_ = address; }
+  void set_sdi12_address(std::string address);
   void set_sdi12_bus(SDI12Bus *bus) { bus_ = bus; }
 
   SDI12Register reg(uint8_t a_register) { return {this, a_register}; }
