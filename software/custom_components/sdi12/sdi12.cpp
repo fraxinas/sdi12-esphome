@@ -45,7 +45,7 @@ void SDI12Bus::dump_config() {
   }
 }
 
-std::string SDI12Bus::send_command(const std::string &command) {
+std::string SDI12Bus::send_command(std::string command) {
   if (!initialized_) {
     ESP_LOGE(TAG, "SDI12 bus not initialized!");
     return "";
@@ -53,8 +53,11 @@ std::string SDI12Bus::send_command(const std::string &command) {
 
   ESP_LOGD(TAG, "Sending command '%s' on SDI-12 bus...", command.c_str());
 
-  this->SDI12_.sendCommand(command.c_str());
+  this->SDI12_.begin();
+
+  this->SDI12_.sendCommand(command.c_str(), 100);
   this->SDI12_.clearBuffer();
+
   delay(30);
 
   std::string buffer;
@@ -65,6 +68,8 @@ std::string SDI12Bus::send_command(const std::string &command) {
   }
 
   ESP_LOGD(TAG, "SDI-12 Received Response: %s", buffer.c_str());
+
+  this->SDI12_.end();
   return buffer;
 }
 

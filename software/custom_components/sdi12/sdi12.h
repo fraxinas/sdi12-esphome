@@ -15,7 +15,7 @@ class SDI12Bus : public Component {
  public:
   void setup() override;
   void dump_config() override;
-  std::string send_command(const std::string &command);
+  std::string send_command(std::string command);
   char read_char();
   float get_setup_priority() const override { return setup_priority::BUS; }
   void set_scan(bool scan) { scan_ = scan; }
