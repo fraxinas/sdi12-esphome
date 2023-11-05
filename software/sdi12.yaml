@@ -30,12 +30,20 @@ sdi12:
   rx_pin: 25
   tx_pin: 26
   enable_pin: 27
-  scan: True
+  scan: False
   id: bus_a
 
 sensor:
   - platform: ds2
-    address: '5'
+    address: 5
     wind_speed:
       name: "Windspeed"
       id: ds2_windspeed
+  - platform: cs215
+    address: 0
+    temperature:
+      name: "Temperature"
+      id: outside_temperature
+    humidity:
+      name: "Humidity"
+      id: outside_humidity
