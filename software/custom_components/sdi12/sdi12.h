@@ -22,7 +22,7 @@ class SDI12Bus : public Component {
   void set_tx_pin(InternalGPIOPin *tx_pin) { this->tx_pin_ = tx_pin; }
   void set_rx_pin(InternalGPIOPin *rx_pin) { this->rx_pin_ = rx_pin; }
   void set_oe_pin(InternalGPIOPin *oe_pin) { this->oe_pin_ = oe_pin; }
-  void sdi12_scan();
+  bool is_scanning() { return this->scan_; }
 
  protected:
   void loop() override;
@@ -31,12 +31,14 @@ class SDI12Bus : public Component {
   InternalGPIOPin *oe_pin_;
   bool initialized_ = false;
   SDI12 SDI12_;
-  std::vector<std::pair<uint8_t, bool>> scan_results_;
+  std::vector<std::pair<uint8_t, std::string>> scan_results_;
   bool scan_{false};
 
  private:
-  boolean checkActive_(char i);
-  void printInfo_(char i);
+  boolean check_device_active_(char i);
+  std::string get_device_info_(char i);
+  void init_scan_();
+  void do_scan_();
   std::vector<char> addresses_to_scan_{};
 };
 

@@ -40,12 +40,13 @@ void SDI12Device::parse_sdi12_values_(const std::string &response, std::vector<f
     }
 }
 
+
 void SDI12Bus::setup() {
   ESP_LOGD(TAG, "Setting up SDI-12 bus...");
   this->SDI12_ = SDI12(this->rx_pin_->get_pin(), this->tx_pin_->get_pin(), this->oe_pin_->get_pin());
 
   if (this->scan_) {
-    this->sdi12_scan();
+    this->init_scan_();
   }
 
   initialized_ = true;
@@ -56,21 +57,6 @@ void SDI12Bus::dump_config() {
   LOG_PIN("  RX Pin: ", this->rx_pin_);
   LOG_PIN("  TX Pin: ", this->tx_pin_);
   LOG_PIN("  OE Pin: ", this->oe_pin_);
-
-  if (this->scan_) {
-    ESP_LOGI(TAG, "Results from SDI-12 bus scan:");
-    if (scan_results_.empty()) {
-      ESP_LOGI(TAG, "Found no SDI-12 devices!");
-    } else {
-      for (const auto &s : scan_results_) {
-        if (s.second) {
-          ESP_LOGI(TAG, "Found SDI-12 device at address %c", s.first);
-        } else {
-          ESP_LOGE(TAG, "Unknown error at address %c", s.first);
-        }
-      }
-    }
-  }
 }
 
 std::string SDI12Bus::send_command(std::string command) {
@@ -112,39 +98,30 @@ char SDI12Bus::read_char() {
   return '\0';
 }
 
-boolean SDI12Bus::checkActive_(char i) {
-  String myCommand = String(i) + "!";
+boolean SDI12Bus::check_device_active_(char i) {
+  String command = String(i) + "!";
 
   for (int j = 1; j <= 3; j++) {
     unsigned long startTime = millis();
-    this->SDI12_.sendCommand(myCommand);
+    this->SDI12_.sendCommand(command, 20);
     this->SDI12_.clearBuffer();
-    ESP_LOGD(TAG, "startTime=%lu millis=%lu diff=%lu ms", startTime, millis(), millis() - startTime);
-
-    delay(30);
-
+    delay(20);
     if (this->SDI12_.available()) {
       return true;
     }
-    ESP_LOGD(TAG, "address %c unavailable %d", i, j);
   }
-
   this->SDI12_.clearBuffer();
   return false;
 }
 
-void SDI12Bus::printInfo_(char i)
+std::string SDI12Bus::get_device_info_(char i)
 {
-  String command = "";
-  command += (char)i;
-  command += "I!";
+  String command = String(i) + "I!";
   this->SDI12_.sendCommand(command);
   this->SDI12_.clearBuffer();
   delay(30);
 
-  ESP_LOGD(TAG, "Print info on SDI-12 device with address %c...", i);
-
-  std::string buffer;
+  std::string buffer = "";
   while (this->SDI12_.available()) {
     char c = static_cast<char>(this->SDI12_.read());
     buffer += c;
@@ -152,18 +129,19 @@ void SDI12Bus::printInfo_(char i)
   }
 
   if (!buffer.empty()) {
-    ESP_LOGI(TAG, "SDI-12 device %c info: %s", i, buffer.c_str());
+    ESP_LOGD(TAG, "SDI-12 device %c info: %s", i, buffer.c_str());
   } else {
-    ESP_LOGI(TAG, "SDI-12 device %c did not respond with info.", i);
+    ESP_LOGD(TAG, "SDI-12 device %c respond without info.", i);
+    return "No device info";
   }
+  return buffer;
 }
 
-void SDI12Bus::sdi12_scan() {
+void SDI12Bus::init_scan_() {
   ESP_LOGD(TAG, "Scanning for devices on SDI-12 bus...");
 
   // Create a vector that contains all addresses that should be scanned
   this->addresses_to_scan_.clear();
-
   // Add numerical addresses
   for (char i = '0'; i <= '9'; i++)
     this->addresses_to_scan_.push_back(i);
@@ -175,20 +153,36 @@ void SDI12Bus::sdi12_scan() {
     this->addresses_to_scan_.push_back(i);
 }
 
+void SDI12Bus::do_scan_() {
+  char address = this->addresses_to_scan_.front();
+  this->addresses_to_scan_.erase(this->addresses_to_scan_.begin());
+
+  ESP_LOGV(TAG, "Scanning address %c", address);
+  this->SDI12_.begin();
+  if (this->check_device_active_(address)) {
+    std::string device_info = this->get_device_info_(address);
+    // Explicitly copy the string before placing it in the vector
+    this->scan_results_.emplace_back(address, std::string(device_info));
+  }
+  this->SDI12_.end();
+
+  if (this->addresses_to_scan_.empty()) {
+    ESP_LOGI(TAG, "SDI-12 bus scan finished! Results:");
+    this->scan_ = false;
+
+    if (scan_results_.empty()) {
+      ESP_LOGW(TAG, "Found no SDI-12 devices!");
+    } else {
+      for (const auto &s : scan_results_) {
+          ESP_LOGI(TAG, "Found SDI-12 device at address %c: %s", s.first, s.second.c_str());
+      }
+    }
+  }
+}
+
 void SDI12Bus::loop() {
   if (!this->addresses_to_scan_.empty()) {
-    char address = this->addresses_to_scan_.front();
-    this->addresses_to_scan_.erase(this->addresses_to_scan_.begin());
-
-    ESP_LOGD(TAG, "Scanning address %c", address);
-    this->SDI12_.begin();
-    if (checkActive_(address)) {
-      this->scan_results_.emplace_back(address, true);
-      printInfo_(address);
-    } else {
-      this->scan_results_.emplace_back(address, false);
-    }
-    this->SDI12_.end();
+    this->do_scan_();
   }
 }
 
