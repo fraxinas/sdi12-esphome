@@ -14,13 +14,17 @@ void DS2Component::setup() {
 }
 
 void DS2Component::update() {
-    ESP_LOGI(TAG, "DS2 update() address %c", this->address_);
-    std::string request = this->address_ + "R0!";
+    if (this->bus_->is_scanning())
+        return;
+
+    std::string request(1, this->address_);
+    request += "R0!";
     std::string response = this->bus_->send_command(request);
     ESP_LOGI(TAG, "Received DS2 sensor response: '%s'", response.c_str());
 
     // Expected fixed string at the beginning of the response
-    std::string expected_prefix = "?R0!0+";
+    std::string expected_prefix(1, this->address_);
+    expected_prefix += "+";
 
     if (response.rfind(expected_prefix, 0) == 0) {
         // Strip the fixed prefix and prepare float variables
@@ -29,9 +33,9 @@ void DS2Component::update() {
 
         this->parse_sdi12_values_(values_str, {&wind_speed, &wind_direction, &wind_temperature});
 
-        ESP_LOGI(TAG, "Parsed Wind Speed: %.2f km/h", wind_speed);
+        ESP_LOGI(TAG, "Parsed Wind Speed: %.3f km/h", wind_speed);
         ESP_LOGI(TAG, "Parsed Wind Direction: %.0f degrees", wind_direction);
-        ESP_LOGI(TAG, "Parsed Wind Temperature: %.1f °C", wind_temperature);
+        ESP_LOGI(TAG, "Parsed Wind Temperature: %.3f °C", wind_temperature);
 
         if (this->windspeed_sensor_ != nullptr) {
             this->windspeed_sensor_->publish_state(wind_speed);
@@ -43,7 +47,7 @@ void DS2Component::update() {
             this->temperature_sensor_->publish_state(wind_temperature);
         }
     } else {
-        ESP_LOGW(TAG, "Response format is incorrect. Expected format to start with '?R0!0+'.");
+        ESP_LOGW(TAG, "Response format is incorrect.");
     }
 }
 

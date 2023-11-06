@@ -17,12 +17,12 @@ void CS215Component::setup() {
 }
 
 void CS215Component::update() {
+    if (this->bus_->is_scanning())
+        return;
+
     std::string request(1, this->address_);
     request += "M!";
-    ESP_LOGD(TAG, "Updating CS215 sensor with request: '%s'", request.c_str());
     std::string response = this->bus_->send_command(request);
-
-    ESP_LOGD(TAG, "Received CS215 sensor response: '%s'", response.c_str());
 
     if (response.length() == 7 && response.substr(response.length() - 3) == "2\r\n") {
         std::string data_str = response.substr(0, 4);
@@ -35,7 +35,7 @@ void CS215Component::update() {
         // Check if the conversion was successful
         if (end_ptr != data_str.c_str()) {
             avail_delay *= 1000;
-            ESP_LOGI(TAG, "CS215 sensor data will be available in %lu ms)", avail_delay);
+            ESP_LOGV(TAG, "CS215 sensor data will be available in %lu ms)", avail_delay);
             this->send_data_timestamp_ = millis() + avail_delay;
         } else {
             ESP_LOGW(TAG, "Failed to convert CS215 sensor data availibity delay");
@@ -49,14 +49,12 @@ void CS215Component::send_data_() {
     this->send_data_timestamp_ = 0;
     std::string request(1, this->address_);
     request += "D0!";
-    ESP_LOGD(TAG, "Requesting sensor to send its data: '%s'", request.c_str());
     std::string response = this->bus_->send_command(request);
     ESP_LOGD(TAG, "Received CS215 sensor response: '%s'", response.c_str());
 
-    ESP_LOGI(TAG, "Received DS2 sensor response: '%s'", response.c_str());
-
    // Expected fixed string at the beginning of the response
-    std::string expected_prefix = "0+";
+    std::string expected_prefix(1, this->address_);
+    expected_prefix += "+";
 
     if (response.rfind(expected_prefix, 0) == 0) {
         // Strip the fixed prefix and prepare float variables
@@ -75,7 +73,7 @@ void CS215Component::send_data_() {
             this->humidity_sensor_->publish_state(humidity);
         }
     } else {
-        ESP_LOGW(TAG, "Response format is incorrect. Expected format to start with '?R0!0+'.");
+        ESP_LOGW(TAG, "Response format is incorrect.");
     }
 }
 
