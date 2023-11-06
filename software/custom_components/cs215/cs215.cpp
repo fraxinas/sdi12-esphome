@@ -51,6 +51,32 @@ void CS215Component::send_data_() {
     ESP_LOGD(TAG, "Requesting sensor to send its data: '%s'", request.c_str());
     std::string response = this->bus_->send_command(request);
     ESP_LOGD(TAG, "Received CS215 sensor response: '%s'", response.c_str());
+
+    ESP_LOGI(TAG, "Received DS2 sensor response: '%s'", response.c_str());
+
+   // Expected fixed string at the beginning of the response
+    std::string expected_prefix = "0+";
+
+    if (response.rfind(expected_prefix, 0) == 0) {
+        // Strip the fixed prefix and prepare float variables
+        std::string values_str = response.substr(expected_prefix.length());
+        float temperature, humidity;
+
+        // Parse the values
+        this->parse_sdi12_values_(values_str, {&temperature, &humidity});
+
+        ESP_LOGI(TAG, "Parsed Temperature: %.0f °C", temperature);
+        ESP_LOGI(TAG, "Parsed Humidity: %.0f %", humidity);
+
+        if (this->temperature_sensor_ != nullptr) {
+            this->temperature_sensor_->publish_state(temperature);
+        }
+        if (this->humidity_sensor_ != nullptr) {
+            this->humidity_sensor_->publish_state(humidity);
+        }
+    } else {
+        ESP_LOGW(TAG, "Response format is incorrect. Expected format to start with '?R0!0+'.");
+    }
 }
 
 void CS215Component::loop() {
