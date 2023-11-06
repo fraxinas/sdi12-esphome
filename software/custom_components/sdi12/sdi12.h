@@ -68,6 +68,7 @@ class SDI12Device {
   SDI12Register reg(uint8_t a_register) { return {this, a_register}; }
 
  protected:
+  void parse_sdi12_values_(const std::string &response, std::vector<float*> values);
   char address_{'0'};
   SDI12Bus *bus_{nullptr};
 };

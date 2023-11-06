@@ -1,4 +1,7 @@
 #include <vector>
+#include <sstream>
+#include <string>
+#include <iomanip>
 #include "sdi12.h"
 #include "esphome/core/log.h"
 
@@ -10,6 +13,24 @@ static const char *const TAG = "sdi12";
 void SDI12Device::set_sdi12_address(std::string address) {
     this->address_ = address.c_str()[0];
     ESP_LOGI(TAG, "Set SDI12 Address '%c'", this->address_);
+}
+
+// Function to tokenize and parse the SDI-12 response containing a variable number of values
+void SDI12Device::parse_sdi12_values_(const std::string &response, std::vector<float*> values) {
+    std::istringstream iss(response);
+    std::string token;
+    size_t index = 0;
+
+    while (std::getline(iss, token, '+') && index < values.size()) {
+        if (!token.empty()) {
+            std::istringstream converter(token);
+            converter >> *values[index];
+            if (converter.fail() || !converter.eof()) {
+                *values[index] = NAN; // Indicate a parsing error
+            }
+            ++index;
+        }
+    }
 }
 
 void SDI12Bus::setup() {
