@@ -153,34 +153,36 @@ void SDI12Bus::printInfo_(char i)
 
 void SDI12Bus::sdi12_scan() {
   ESP_LOGD(TAG, "Scanning for devices on SDI-12 bus...");
-  this->SDI12_.begin();
 
   // Create a vector that contains all addresses that should be scanned
-  std::vector<char> addresses_to_scan;
+  this->addresses_to_scan_.clear();
 
   // Add numerical addresses
   for (char i = '0'; i <= '9'; i++)
-    addresses_to_scan.push_back(i);
+    this->addresses_to_scan_.push_back(i);
   // Add lowercase alphabetical addresses
   for (char i = 'a'; i <= 'z'; i++)
-    addresses_to_scan.push_back(i);
+    this->addresses_to_scan_.push_back(i);
   // Add uppercase alphabetical addresses
   for (char i = 'A'; i <= 'Z'; i++)
-    addresses_to_scan.push_back(i);
+    this->addresses_to_scan_.push_back(i);
+}
 
-  // Now iterate over the addresses and perform the scan
-  for (char address : addresses_to_scan) {
-    ESP_LOGD(TAG, "Scan Address Space = %c", address);
-    yield();
+void SDI12Bus::loop() {
+  if (!this->addresses_to_scan_.empty()) {
+    char address = this->addresses_to_scan_.front();
+    this->addresses_to_scan_.erase(this->addresses_to_scan_.begin());
+
+    ESP_LOGD(TAG, "Scanning address %c", address);
+    this->SDI12_.begin();
     if (checkActive_(address)) {
-      scan_results_.emplace_back(address, true);
+      this->scan_results_.emplace_back(address, true);
       printInfo_(address);
     } else {
-      scan_results_.emplace_back(address, false);
+      this->scan_results_.emplace_back(address, false);
     }
+    this->SDI12_.end();
   }
-
-  this->SDI12_.end();
 }
 
 }  // namespace sdi12
