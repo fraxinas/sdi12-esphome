@@ -1,6 +1,3 @@
-#include <sstream>
-#include <string>
-#include <iomanip>
 #include "ds2.h"
 
 namespace esphome {
@@ -20,60 +17,31 @@ void DS2Component::update() {
     ESP_LOGI(TAG, "DS2 update() address %c", this->address_);
     std::string request = this->address_ + "R0!";
     std::string response = this->bus_->send_command(request);
-
     ESP_LOGI(TAG, "Received DS2 sensor response: '%s'", response.c_str());
 
-    // Expected fixed format at the beginning of the response
+    // Expected fixed string at the beginning of the response
     std::string expected_prefix = "?R0!0+";
 
     if (response.rfind(expected_prefix, 0) == 0) {
-        // Strip the fixed prefix
+        // Strip the fixed prefix and prepare float variables
         std::string values_str = response.substr(expected_prefix.length());
+        float wind_speed, wind_direction, wind_temperature;
 
-        std::istringstream iss(values_str);
-        std::string token;
-        float wind_speed = 0;
-        float wind_direction = 0;
-        float wind_temperature = 0;
+        this->parse_sdi12_values_(values_str, {&wind_speed, &wind_direction, &wind_temperature});
 
-        // Wind Speed
-        if (std::getline(iss, token, '+') && !token.empty()) {
-            std::istringstream converter(token);
-            converter >> wind_speed;
-            if (converter.fail() || !converter.eof()) {
-                ESP_LOGW(TAG, "Failed to parse wind speed");
-            } else {
-                ESP_LOGI(TAG, "Parsed Wind Speed: %.2f km/h", wind_speed);
-            }
-        }
+        ESP_LOGI(TAG, "Parsed Wind Speed: %.2f km/h", wind_speed);
+        ESP_LOGI(TAG, "Parsed Wind Direction: %.0f degrees", wind_direction);
+        ESP_LOGI(TAG, "Parsed Wind Temperature: %.1f °C", wind_temperature);
 
-        // Wind Direction
-        if (std::getline(iss, token, '+') && !token.empty()) {
-            std::istringstream converter(token);
-            converter >> wind_direction;
-            if (converter.fail() || !converter.eof()) {
-                ESP_LOGW(TAG, "Failed to parse wind direction");
-            } else {
-                ESP_LOGI(TAG, "Parsed Wind Direction: %.0f degrees", wind_direction);
-            }
-        }
-
-        // Wind Temperature
-        if (std::getline(iss, token, '+') && !token.empty()) {
-            std::istringstream converter(token);
-            converter >> wind_temperature;
-            if (converter.fail() || !converter.eof()) {
-                ESP_LOGW(TAG, "Failed to parse wind temperature");
-            } else {
-                ESP_LOGI(TAG, "Parsed Wind Temperature: %.1f °C", wind_temperature);
-            }
-        }
-
-        // Publish the values even if one of the above fails, as requested.
         if (this->windspeed_sensor_ != nullptr) {
             this->windspeed_sensor_->publish_state(wind_speed);
         }
-        // Repeat for wind_direction_sensor_ and wind_temperature_sensor_
+        if (this->direction_sensor_ != nullptr) {
+            this->direction_sensor_->publish_state(wind_direction);
+        }
+        if (this->temperature_sensor_ != nullptr) {
+            this->temperature_sensor_->publish_state(wind_temperature);
+        }
     } else {
         ESP_LOGW(TAG, "Response format is incorrect. Expected format to start with '?R0!0+'.");
     }
