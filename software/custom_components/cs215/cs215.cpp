@@ -44,6 +44,7 @@ void CS215Component::update() {
         ESP_LOGW(TAG, "Invalid response format from CS215 sensor");
     }
 }
+
 void CS215Component::send_data_() {
     this->send_data_timestamp_ = 0;
     std::string request(1, this->address_);
@@ -62,11 +63,10 @@ void CS215Component::send_data_() {
         std::string values_str = response.substr(expected_prefix.length());
         float temperature, humidity;
 
-        // Parse the values
         this->parse_sdi12_values_(values_str, {&temperature, &humidity});
 
-        ESP_LOGI(TAG, "Parsed Temperature: %.0f °C", temperature);
-        ESP_LOGI(TAG, "Parsed Humidity: %.0f %", humidity);
+        ESP_LOGI(TAG, "Parsed Temperature: %.3f °C", temperature);
+        ESP_LOGI(TAG, "Parsed Humidity: %.3f %%", humidity);
 
         if (this->temperature_sensor_ != nullptr) {
             this->temperature_sensor_->publish_state(temperature);

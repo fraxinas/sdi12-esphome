@@ -22,10 +22,17 @@ void SDI12Device::parse_sdi12_values_(const std::string &response, std::vector<f
     size_t index = 0;
 
     while (std::getline(iss, token, '+') && index < values.size()) {
+        // If this is the last token, trim line endings
+        if (index == values.size() - 1) {
+            size_t pos = token.find_last_of("\r\n");
+            if (pos != std::string::npos) {
+                token = token.substr(0, pos);
+            }
+        }
         if (!token.empty()) {
             std::istringstream converter(token);
             converter >> *values[index];
-            if (converter.fail() || !converter.eof()) {
+            if (converter.fail()) {
                 *values[index] = NAN; // Indicate a parsing error
             }
             ++index;
