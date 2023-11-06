@@ -338,11 +338,6 @@ bool SDI12::isActive()
 
 
 /* ================ Data Line States ================================================*/
-// Processor specific parity and interrupts
-#if defined __AVR__
-#include <avr/interrupt.h>  // interrupt handling
-#include <util/parity.h>    // optimized parity bit handling
-#else
 // Added MJB: parity function to replace the one specific for AVR from util/parity.h
 // http://graphics.stanford.edu/~seander/bithacks.html#ParityNaive
 uint8_t SDI12::parity_even_bit(uint8_t v)
@@ -355,7 +350,6 @@ uint8_t SDI12::parity_even_bit(uint8_t v)
   }
   return parity;
 }
-#endif
 
 // a helper function to switch pin interrupts on or off
 void SDI12::setPinInterrupts(bool enable)
@@ -405,31 +399,6 @@ void SDI12::setPinInterrupts(bool enable)
   else
   {
     detachInterrupt(digitalPinToInterrupt(_dataPinRX));
-  }
-
-#elif defined(__AVR__) && not defined(SDI12_EXTERNAL_PCINT)
-  if (enable) {
-    // Enable interrupts on the register with the pin of interest
-    *digitalPinToPCICR(_dataPinRX) |= (1 << digitalPinToPCICRbit(_dataPinRX));
-    // Enable interrupts on the specific pin of interest
-    // The interrupt function is actually attached to the interrupt way down in
-    // section 7.5
-    *digitalPinToPCMSK(_dataPinRX) |= (1 << digitalPinToPCMSKbit(_dataPinRX));
-  } else {
-    // Disable interrupts on the specific pin of interest
-    *digitalPinToPCMSK(_dataPinRX) &= ~(1 << digitalPinToPCMSKbit(_dataPinRX));
-    if (!*digitalPinToPCMSK(_dataPinRX)) {
-      // If there are no other pins on the register left with enabled interrupts,
-      // disable the whole register
-      *digitalPinToPCICR(_dataPinRX) &= ~(1 << digitalPinToPCICRbit(_dataPinRX));
-    }
-    // We don't detach the function from the interrupt for AVR processors
-  }
-#else
-  if (enable) {
-    return;
-  } else {
-    return;
   }
 #endif
 }
