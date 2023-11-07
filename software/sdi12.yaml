@@ -34,11 +34,6 @@ sdi12:
   id: bus_a
 
 sensor:
-  - platform: ds2
-    address: 5
-    wind_speed:
-      name: "Windspeed"
-      id: ds2_windspeed
   - platform: cs215
     address: 0
     temperature:
@@ -47,3 +42,14 @@ sensor:
     humidity:
       name: "Humidity"
       id: outside_humidity
+  - platform: ds2
+    address: 5
+    wind_speed:
+      name: "Windspeed"
+      id: ds2_windspeed
+    wind_direction_degrees:
+      name: "Winddirection"
+      id: ds2_winddirection
+    temperature:
+      name: "Windtemperature"
+      id: ds_windtemperature
