@@ -541,6 +541,11 @@
       (net 7 "GPIO23") (pinfunction "Pin_1") (pintype "passive") (tstamp e5c06743-e6e1-4471-90f4-3764576d8e11))
     (pad "2" thru_hole circle (at 5 0 180) (size 1.6002 1.6002) (drill 1.0922) (layers "*.Cu" "*.Mask")
       (net 33 "GND") (pinfunction "Pin_2") (pintype "passive") (tstamp 68ed926f-9d26-4582-81e9-4aad0a48649d))
+    (model "${KIPRJMOD}/lib_includes/Fraxinas-kicad/Fraxinas-kicad.pretty/Phoenix Contact SPTA 1 2 5,0 1752214_3D.step"
+      (offset (xyz -1.75 -5.6 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" (layer "F.Cu")
@@ -23995,6 +24000,11 @@
       (net 43 "GPIO22") (pinfunction "Pin_1") (pintype "passive") (tstamp 912afd3a-0357-4f86-95f4-fbfc40eeb052))
     (pad "2" thru_hole circle (at 5 0 180) (size 1.6002 1.6002) (drill 1.0922) (layers "*.Cu" "*.Mask")
       (net 42 "GPIO21") (pinfunction "Pin_2") (pintype "passive") (tstamp 3bb5a8e9-7301-47b7-b1ef-5fbd28575029))
+    (model "${KIPRJMOD}/lib_includes/Fraxinas-kicad/Fraxinas-kicad.pretty/Phoenix Contact SPTA 1 2 5,0 1752214_3D.step"
+      (offset (xyz -1.75 -5.6 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (footprint "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" (layer "F.Cu")
