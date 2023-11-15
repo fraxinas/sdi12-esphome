@@ -48,6 +48,7 @@
 | :--------- | :------ | :----------------------------------------------- |
 | 2023-10-22 |         | Started Project on the breadboard                |
 | 2023-11-06 |         | First successful sensor readout in EPSHome       |
+| 2023-11-13 |  v0.1   | Order prototype design at JLCPCB                 |
 
 ## Resources
 * https://www.sdi-12.org/current_specification/SDI-12_version-1_4-Jan-10-2019.pdf
