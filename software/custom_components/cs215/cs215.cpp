@@ -45,26 +45,35 @@ void CS215Component::update() {
     }
 }
 
+
 void CS215Component::send_data_() {
     this->send_data_timestamp_ = 0;
     std::string request(1, this->address_);
     request += "D0!";
     std::string response = this->bus_->send_command(request);
+
+    if (response.empty()) {
+        ESP_LOGW(TAG, "Received an empty response from the sensor.");
+        return;
+    }
+
+    if (response[0] != this->address_) {
+        ESP_LOGW(TAG, "Response does not start with the expected address.");
+        return;
+    }
+
     ESP_LOGD(TAG, "Received CS215 sensor response: '%s'", response.c_str());
 
-   // Expected fixed string at the beginning of the response
-    std::string expected_prefix(1, this->address_);
-    expected_prefix += "+";
+    // Prepare float variables for parsed values
+    float temperature = 0, humidity = 0;
 
-    if (response.rfind(expected_prefix, 0) == 0) {
-        // Strip the fixed prefix and prepare float variables
-        std::string values_str = response.substr(expected_prefix.length());
-        float temperature, humidity;
+    // Call the parsing function with the response string, skipping the address character
+    this->parse_sdi12_values_(response.substr(1), {&temperature, &humidity});
 
-        this->parse_sdi12_values_(values_str, {&temperature, &humidity});
-
-        ESP_LOGI(TAG, "Parsed Temperature: %.3f °C", temperature);
-        ESP_LOGI(TAG, "Parsed Humidity: %.3f %%", humidity);
+    if (temperature != NAN || humidity != NAN) {
+        // Process the parsed values
+        ESP_LOGI(TAG, "Parsed Temperature: %.1f °C", temperature);
+        ESP_LOGI(TAG, "Parsed Humidity: %.1f %%", humidity);
 
         if (this->temperature_sensor_ != nullptr) {
             this->temperature_sensor_->publish_state(temperature);
@@ -73,7 +82,7 @@ void CS215Component::send_data_() {
             this->humidity_sensor_->publish_state(humidity);
         }
     } else {
-        ESP_LOGW(TAG, "Response format is incorrect.");
+        ESP_LOGW(TAG, "No valid data values found in the response.");
     }
 }
 

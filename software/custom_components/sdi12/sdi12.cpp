@@ -15,30 +15,43 @@ void SDI12Device::set_sdi12_address(std::string address) {
     ESP_LOGI(TAG, "Set SDI12 Address '%c'", this->address_);
 }
 
+
 // Function to tokenize and parse the SDI-12 response containing a variable number of values
 void SDI12Device::parse_sdi12_values_(const std::string &response, std::vector<float*> values) {
-    std::istringstream iss(response);
-    std::string token;
+    size_t start = 0;
     size_t index = 0;
 
-    while (std::getline(iss, token, '+') && index < values.size()) {
-        // If this is the last token, trim line endings
+    while (start < response.length() && index < values.size()) {
+        // Find the next occurrence of '+' or '-', indicating the start of the next number
+        size_t end = response.find_first_of("+-", start + 1);
+        if (end == std::string::npos || index == values.size() - 1) {
+            end = response.length();
+        }
+
+        // Extract the number (including its sign)
+        std::string token = response.substr(start, end - start);
+
+        // Trim line endings if this is the last token
         if (index == values.size() - 1) {
-            size_t pos = token.find_last_of("\r\n");
+            size_t pos = token.find_last_not_of("\r\n");
             if (pos != std::string::npos) {
-                token = token.substr(0, pos);
+                token = token.substr(0, pos + 1);
             }
         }
-        if (!token.empty()) {
-            std::istringstream converter(token);
-            converter >> *values[index];
-            if (converter.fail()) {
-                *values[index] = NAN; // Indicate a parsing error
-            }
-            ++index;
+
+        // Convert token to float
+        std::istringstream converter(token);
+        converter >> *values[index];
+        if (converter.fail()) {
+            *values[index] = NAN; // Indicate a parsing error
         }
+
+        // Prepare for the next number
+        start = end;
+        ++index;
     }
 }
+
 
 
 void SDI12Bus::setup() {
