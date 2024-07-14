@@ -19,7 +19,7 @@ wifi:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: VERBOSE
 
 # Enable Home Assistant API
 api:
@@ -33,23 +33,54 @@ sdi12:
   scan: False
   id: bus_a
 
+uart:
+  tx_pin: 21
+  rx_pin: 22
+  baud_rate: 9600
+
 sensor:
   - platform: cs215
     address: 0
     temperature:
       name: "Temperature"
       id: outside_temperature
+      filters:
+        - median:
+            window_size: 12
+            send_every: 5
     humidity:
       name: "Humidity"
       id: outside_humidity
-  - platform: ds2
-    address: 5
-    wind_speed:
-      name: "Windspeed"
-      id: ds2_windspeed
-    wind_direction_degrees:
-      name: "Winddirection"
-      id: ds2_winddirection
-    temperature:
-      name: "Windtemperature"
-      id: ds_windtemperature
+      filters:
+        - delta: 2.0
+  # - platform: ds2
+  #   address: 5
+  #   wind_speed:
+  #     name: "Windspeed"
+  #     id: ds2_windspeed
+  #   wind_direction_degrees:
+  #     name: "Winddirection"
+  #     id: ds2_winddirection
+  #   temperature:
+  #     name: "Windtemperature"
+  #     id: ds_windtemperature
+  - platform: "jsn_sr04t"
+    name: "Obere Zisterne"
+    model: "rcwl_1655"
+    update_interval: 2s
+    filters:
+      - lambda: |-
+          const float min_distance = 0.3;
+          const float max_distance = 1.5;
+          float fill_level = (max_distance - x) / (max_distance - min_distance) * 100.0;
+          return fill_level;
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+# switch:
+#   - platform: gpio
+#     pin:
+#       number: 32
+#       inverted: true
+#     id: sensor_power
+#     name: "Sensor Power"
